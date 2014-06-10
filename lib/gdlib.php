@@ -127,7 +127,14 @@ function process_new_icon($context, $component, $filearea, $itemid, $originalfil
             // Guess transparent colour from GIF.
             $transparent = imagecolortransparent($im);
             if ($transparent != -1) {
-                $t = imagecolorsforindex($im, $transparent);
+                $palletsize = imagecolorstotal($im);
+                if ($transparent < $palletsize) {
+                    $t = imagecolorsforindex($im, $transparent);
+                }
+                else {
+                    debugging('The GIF image has an invalid index');
+                    return false;
+                }
             }
             break;
         case IMAGETYPE_JPEG:
