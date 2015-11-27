@@ -53,6 +53,7 @@ class MoodleQuickForm_date_time_selector extends MoodleQuickForm_group {
      *      {@link http://docs.moodle.org/dev/Time_API#Timezone}
      * step => step to increment minutes by
      * optional => if true, show a checkbox beside the date to turn it on (or off)
+     * hideyuicalendar => if true, hides the icon and YUI pop-up calendar
      * @var array
      */
     protected $_options = array();
@@ -81,7 +82,8 @@ class MoodleQuickForm_date_time_selector extends MoodleQuickForm_group {
         // Get the calendar type used - see MDL-18375.
         $calendartype = \core_calendar\type_factory::get_calendar_instance();
         $this->_options = array('startyear' => $calendartype->get_min_year(), 'stopyear' => $calendartype->get_max_year(),
-            'defaulttime' => 0, 'timezone' => 99, 'step' => 5, 'optional' => false);
+            'defaulttime' => 0, 'timezone' => 99, 'step' => 5, 'optional' => false,
+            'hideyuicalendar' => false);
 
         $this->HTML_QuickForm_element($elementName, $elementLabel, $attributes);
         $this->_persistantFreeze = true;
@@ -101,7 +103,7 @@ class MoodleQuickForm_date_time_selector extends MoodleQuickForm_group {
         }
 
         // The YUI2 calendar only supports the gregorian calendar type.
-        if ($calendartype->get_name() === 'gregorian') {
+        if (!$this->_options['hideyuicalendar'] && $calendartype->get_name() === 'gregorian') {
             form_init_date_js();
         }
     }
@@ -138,7 +140,7 @@ class MoodleQuickForm_date_time_selector extends MoodleQuickForm_group {
             $this->_elements[] = @MoodleQuickForm::createElement('select', 'minute', get_string('minute', 'form'), $minutes, $this->getAttributes(), true);
         }
         // The YUI2 calendar only supports the gregorian calendar type so only display the calendar image if this is being used.
-        if ($calendartype->get_name() === 'gregorian') {
+        if (!$this->_options['hideyuicalendar'] && $calendartype->get_name() === 'gregorian') {
             $image = $OUTPUT->pix_icon('i/calendar', get_string('calendar', 'calendar'), 'moodle');
             $this->_elements[] = @MoodleQuickForm::createElement('link', 'calendar',
                     null, '#', $image,
@@ -209,7 +211,7 @@ class MoodleQuickForm_date_time_selector extends MoodleQuickForm_group {
                 }
                 break;
             case 'createElement':
-                if ($arg[2]['optional']) {
+                if (isset($arg[2]['optional']) && $arg[2]['optional'] && !empty($arg[0])) {
                     // When using the function addElement, rather than createElement, we still
                     // enter this case, making this check necessary.
                     if ($this->_usedcreateelement) {
